@@ -1,4 +1,4 @@
-from flask import Flask
+﻿from flask import Flask
 from flask_restful import Api, Resource, reqparse
 import random
 
@@ -8,7 +8,7 @@ api = Api(app)
 ai_quotes = [
     {
         "id": 0,
-        "author": "Kevin Kelly",
+        "author": "Kevin Kely",
         "quote": "The business plans of the next 10,000 startups are easy to forecast: " +
                  "Take X and add AI."
     },
