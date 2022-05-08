@@ -1,1 +1,1 @@
-worker: python app.py $POST
+web: gunicorn app:app
