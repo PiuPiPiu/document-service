@@ -119,4 +119,3 @@ if __name__ == '__main__':
 
     last_files = current_files
     app.run(debug=True)
-    # current_files = files_enum(r'C:\Users\Ekaterina\Desktop\sfedu-documents')
