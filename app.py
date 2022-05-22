@@ -54,8 +54,6 @@ def files_enum(folder):
         id = id + 1
     return output['files']
 
-current_files = files_enum(r'C:\Users\Ekaterina\Desktop\sfedu-documents')
-
 class Documents(Resource):
     def get(self, id=0):
 
@@ -117,7 +115,7 @@ class Documents(Resource):
 api.add_resource(Documents, "/document-service", "/document-service/", "/document-service/<int:id>")
 
 if __name__ == '__main__':
-    current_files = files_enum(r'C:\\Users\\Ekaterina\\Desktop\\university-documents')
+    current_files = files_enum(r'C:\Users\Ekaterina\Desktop\university-documents')
 
     last_files = current_files
     app.run(debug=True)
