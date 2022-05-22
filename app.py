@@ -55,10 +55,10 @@ def files_enum(folder):
 
 class Documents(Resource):
     def get(self, id=0):
-        current_files = files_enum(r'C:\Users\Ekaterina\Desktop\university-documents')
+        # current_files = files_enum(r'C:\Users\Ekaterina\Desktop\university-documents')
         if id == 0:
-            return current_files, 200
-        for file in current_files:
+            return last_files, 200
+        for file in last_files:
             return file, 200
         return "File not found", 404
 
@@ -113,5 +113,9 @@ class Documents(Resource):
 api.add_resource(Documents, "/document-service", "/document-service/", "/document-service/<int:id>")
 
 if __name__ == '__main__':
+    current_files = files_enum(r'C:\Users\Ekaterina\Desktop\sfedu-documents')
+    # if last_files != current_files:
+    #     send(current_files)
+    last_files = current_files
     app.run(debug=True, use_reloader=False)
     # current_files = files_enum(r'C:\Users\Ekaterina\Desktop\sfedu-documents')
