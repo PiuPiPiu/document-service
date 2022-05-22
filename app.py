@@ -9,6 +9,7 @@ api = Api(app)
 
 last_files = []
 rules = ['срок сдачи до', 'выполнить до', 'подготовить ответ к', 'выполнить до', 'сообщить до', 'согласовать до']# Правила для определения дат
+current_files = files_enum(r'C:\Users\Ekaterina\Desktop\sfedu-documents')
 
 def parse_txt(path):
     text = open(path).read()
@@ -55,7 +56,7 @@ def files_enum(folder):
 
 class Documents(Resource):
     def get(self, id=0):
-        current_files = files_enum(r'C:\Users\Ekaterina\Desktop\sfedu-documents')
+
 
         if id == 0:
             return current_files, 200
@@ -64,7 +65,7 @@ class Documents(Resource):
         return "File not found", 404
 
     def post(self, id):
-      current_files = files_enum(r'C:\Users\Ekaterina\Desktop\sfedu-documents')
+
       parser = reqparse.RequestParser()
       parser.add_argument("name")
       parser.add_argument("date")
@@ -85,7 +86,7 @@ class Documents(Resource):
       return file, 201
 
     def put(self, id):
-      current_files = files_enum(r'C:\Users\Ekaterina\Desktop\sfedu-documents')
+
       parser = reqparse.RequestParser()
       parser.add_argument("name")
       parser.add_argument("date")
@@ -106,7 +107,7 @@ class Documents(Resource):
           }
 
     def delete(self, id):
-        current_files = files_enum(r'C:\Users\Ekaterina\Desktop\sfedu-documents')
+
         current_files = [file for file in current_files if file["id"] != id]
         return f"File with id {id} is deleted.", 200
 
