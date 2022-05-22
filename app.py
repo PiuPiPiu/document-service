@@ -1,155 +1,118 @@
 from flask import Flask
 from flask_restful import Api, Resource, reqparse
-import random
+import docx2txt
+import os
+import re
 
 app = Flask(__name__)
 api = Api(app)
 
-ai_quotes = [
-    {
-        "id": 0,
-        "author": "Kevin Kelly",
-        "quote": "The business plans of the next 10,000 startups are easy to forecast: " +
-                 "Take X and add AI."
-    },
-    {
-        "id": 1,
-        "author": "Stephen Hawking",
-        "quote": "The development of full artificial intelligence could " +
-                 "spell the end of the human race… " +
-                 "It would take off on its own, and re-design " +
-                 "itself at an ever increasing rate. " +
-                 "Humans, who are limited by slow biological evolution, " +
-                 "couldn't compete, and would be superseded."
-    },
-    {
-        "id": 2,
-        "author": "Claude Shannon",
-        "quote": "I visualize a time when we will be to robots what " +
-                 "dogs are to humans, " +
-                 "and I’m rooting for the machines."
-    },
-    {
-        "id": 3,
-        "author": "Elon Musk",
-        "quote": "The pace of progress in artificial intelligence " +
-                 "(I’m not referring to narrow AI) " +
-                 "is incredibly fast. Unless you have direct " +
-                 "exposure to groups like Deepmind, " +
-                 "you have no idea how fast — it is growing " +
-                 "at a pace close to exponential. " +
-                 "The risk of something seriously dangerous " +
-                 "happening is in the five-year timeframe." +
-                 "10 years at most."
-    },
-    {
-        "id": 4,
-        "author": "Geoffrey Hinton",
-        "quote": "I have always been convinced that the only way " +
-                 "to get artificial intelligence to work " +
-                 "is to do the computation in a way similar to the human brain. " +
-                 "That is the goal I have been pursuing. We are making progress, " +
-                 "though we still have lots to learn about " +
-                 "how the brain actually works."
-    },
-    {
-        "id": 5,
-        "author": "Pedro Domingos",
-        "quote": "People worry that computers will " +
-                 "get too smart and take over the world, " +
-                 "but the real problem is that they're too stupid " +
-                 "and they've already taken over the world."
-    },
-    {
-        "id": 6,
-        "author": "Alan Turing",
-        "quote": "It seems probable that once the machine thinking " +
-                 "method had started, it would not take long " +
-                 "to outstrip our feeble powers… " +
-                 "They would be able to converse " +
-                 "with each other to sharpen their wits. " +
-                 "At some stage therefore, we should " +
-                 "have to expect the machines to take control."
-    },
-    {
-        "id": 7,
-        "author": "Ray Kurzweil",
-        "quote": "Artificial intelligence will reach " +
-                 "human levels by around 2029. " +
-                 "Follow that out further to, say, 2045, " +
-                 "we will have multiplied the intelligence, " +
-                 "the human biological machine intelligence " +
-                 "of our civilization a billion-fold."
-    },
-    {
-        "id": 8,
-        "author": "Sebastian Thrun",
-        "quote": "Nobody phrases it this way, but I think " +
-                 "that artificial intelligence " +
-                 "is almost a humanities discipline. It's really an attempt " +
-                 "to understand human intelligence and human cognition."
-    },
-    {
-        "id": 9,
-        "author": "Andrew Ng",
-        "quote": "We're making this analogy that AI is the new electricity." +
-                 "Electricity transformed industries: agriculture, " +
-                 "transportation, communication, manufacturing."
-    }
-]
+last_files = []
+rules = ['срок сдачи до', 'выполнить до', 'подготовить ответ к', 'выполнить до', 'сообщить до', 'согласовать до']# Правила для определения дат
 
+def parse_txt(path):
+    text = open(path).read()
+    date = ''
+    for rule in rules: # Перебор правил
+        if rule in text:
+            date = text[text.index(rule):]
+            date = str(re.search(r'\d\d.\d\d.\d\d\d\d', date).group())
+    return date
 
-class Quote(Resource):
+def parse_docx(path):
+    text = docx2txt.process(path)
+    date = ''
+    for rule in rules: # Перебор правил
+        if re.search(rule, text):
+            date = text[text.index(rule):]
+            date = str(re.search(r'\d\d.\d\d.\d\d\d\d', date).group())
+    return date
+
+def read_docs(path):
+    filename, file_extension = os.path.splitext(path)
+    date = '';
+    if file_extension == '.docx':
+        date = parse_docx(path)
+    if file_extension == '.txt':
+        date = parse_txt(path)
+    return date
+
+def files_enum(folder):
+    files = os.listdir(folder)
+    output = {'files': []}
+    id = 1
+    for document in files: # Перебор файлов
+        date = read_docs(folder + '\\' + document)
+        obj = {
+            'name': document,
+            'date': date,
+            'visible': True,
+            'id': id
+        }
+        output['files'].append(obj)
+        id = id + 1
+    return output['files']
+
+class Documents(Resource):
     def get(self, id=0):
+        current_files = files_enum(r'C:\Users\Ekaterina\Desktop\sfedu-documents')
+
         if id == 0:
-            return random.choice(ai_quotes), 200
-        for quote in ai_quotes:
-            if(quote["id"] == id):
-                return quote, 200
-        return "Quote not found", 404
+            return current_files, 200
+        for file in current_files:
+            return file, 200
+        return "File not found", 404
 
     def post(self, id):
+      current_files = files_enum(r'C:\Users\Ekaterina\Desktop\sfedu-documents')
       parser = reqparse.RequestParser()
-      parser.add_argument("author")
-      parser.add_argument("quote")
+      parser.add_argument("name")
+      parser.add_argument("date")
+      parser.add_argument("visible")
       params = parser.parse_args()
-      for quote in ai_quotes:
-          if(id == quote["id"]):
-              return f"Quote with id {id} already exists", 400
-      quote = {
-          "id": int(id),
-          "author": params["author"],
-          "quote": params["quote"]
-      }
-      ai_quotes.append(quote)
-      return quote, 201
+      for file in current_files:
+          if id == file["id"]:
+              return f"File with id {id} already exists", 400
+
+          file = {
+              "id": int(id),
+              "name": params["name"],
+              "date": params["date"],
+              "visible": params["visible"]
+          }
+
+          current_files.append(file)
+      return file, 201
 
     def put(self, id):
+      current_files = files_enum(r'C:\Users\Ekaterina\Desktop\sfedu-documents')
       parser = reqparse.RequestParser()
-      parser.add_argument("author")
-      parser.add_argument("quote")
+      parser.add_argument("name")
+      parser.add_argument("date")
+      parser.add_argument("visible")
       params = parser.parse_args()
-      for quote in ai_quotes:
-          if(id == quote["id"]):
-              quote["author"] = params["author"]
-              quote["quote"] = params["quote"]
-              return quote, 200
+      for file in current_files:
+          if(id == file["id"]):
+              file["name"] = params["name"]
+              file["date"] = params["date"]
+              file["visible"] = params["visible"]
+              return file, 200
 
-      quote = {
-          "id": id,
-          "author": params["author"],
-          "quote": params["quote"]
-      }
-
-      ai_quotes.append(quote)
-      return quote, 201
+          file = {
+              "id": id,
+              "name": params["name"],
+              "date": params["date"],
+              "visible": params["visible"]
+          }
 
     def delete(self, id):
-      global ai_quotes
-      ai_quotes = [qoute for qoute in ai_quotes if qoute["id"] != id]
-      return f"Quote with id {id} is deleted.", 200
+        current_files = files_enum(r'C:\Users\Ekaterina\Desktop\sfedu-documents')
+        current_files = [file for file in current_files if file["id"] != id]
+        return f"File with id {id} is deleted.", 200
 
 
-api.add_resource(Quote, "/ai-quotes", "/ai-quotes/", "/ai-quotes/<int:id>")
+api.add_resource(Documents, "/document-service", "/document-service/", "/document-service/<int:id>")
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)
+    # current_files = files_enum(r'C:\Users\Ekaterina\Desktop\sfedu-documents')
