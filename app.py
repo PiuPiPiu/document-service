@@ -9,7 +9,7 @@ api = Api(app)
 
 last_files = []
 rules = ['срок сдачи до', 'выполнить до', 'подготовить ответ к', 'выполнить до', 'сообщить до', 'согласовать до']# Правила для определения дат
-current_files = files_enum(r'C:\Users\Ekaterina\Desktop\sfedu-documents')
+
 
 def parse_txt(path):
     text = open(path).read()
@@ -53,6 +53,8 @@ def files_enum(folder):
         output['files'].append(obj)
         id = id + 1
     return output['files']
+
+current_files = files_enum(r'C:\Users\Ekaterina\Desktop\sfedu-documents')
 
 class Documents(Resource):
     def get(self, id=0):
