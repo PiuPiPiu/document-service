@@ -51,7 +51,7 @@ def files_enum(folder):
         }
         output['files'].append(obj)
         id = id + 1
-    return output
+    return output['files']
 
 class Documents(Resource):
     def get(self, id=0):
