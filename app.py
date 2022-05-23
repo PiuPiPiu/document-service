@@ -60,7 +60,7 @@ class Documents(Resource):
         if id == 0:
             return current_files, 200
         for file in current_files:
-            if(current_files["id"] == id):
+            if(file["id"] == id):
                 return file, 200
         return "File not found", 404
 
