@@ -57,7 +57,7 @@ def files_enum(folder):
 class Documents(Resource):
     def get(self, id=0):
         current_files = files_enum((Path(__file__).parent/'university-documents')
-        if id == 0:
+        if(id == 0):
             return last_files, 200
         for file in last_files:
             return file, 200
@@ -71,7 +71,7 @@ class Documents(Resource):
       parser.add_argument("visible")
       params = parser.parse_args()
       for file in current_files:
-          if id == file["id"]:
+          if(id == file["id"]):
               return f"File with id {id} already exists", 400
 
           file = {
