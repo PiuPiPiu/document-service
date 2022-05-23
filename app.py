@@ -43,7 +43,7 @@ def files_enum(folder):
     output = {'files': []}
     id = 1
     for document in files: # Перебор файлов
-        date = read_docs(str(folder) + '\\' + document)
+        date = read_docs(str(folder) + '/' + document)
         obj = {
             'name': document,
             'date': date,
