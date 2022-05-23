@@ -57,10 +57,11 @@ def files_enum(folder):
 class Documents(Resource):
     def get(self, id=0):
         current_files = files_enum((Path(__file__).parent/'university-documents')
-        if(id == 0):
-            return last_files, 200
-        for file in last_files:
-            return file, 200
+        if id == 0:
+            return current_files, 200
+        for file in current_files:
+            if(current_files["id"] == id):
+                return file, 200
         return "File not found", 404
 
     def post(self, id):
