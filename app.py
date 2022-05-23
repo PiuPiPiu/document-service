@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_restful import Api, Resource, reqparse
 import docx2txt
+from pathlib import Path
 import os
 import re
 
@@ -55,7 +56,7 @@ def files_enum(folder):
 
 class Documents(Resource):
     def get(self, id=0):
-        # current_files = files_enum(r'C:\Users\Ekaterina\Desktop\university-documents')
+        current_files = files_enum((Path(__file__).parent/'university-documents')
         if id == 0:
             return last_files, 200
         for file in last_files:
@@ -63,7 +64,7 @@ class Documents(Resource):
         return "File not found", 404
 
     def post(self, id):
-      current_files = files_enum(r'C:\Users\Ekaterina\Desktop\university-documents')
+      current_files = files_enum((Path(__file__).parent/'university-documents')
       parser = reqparse.RequestParser()
       parser.add_argument("name")
       parser.add_argument("date")
@@ -84,7 +85,7 @@ class Documents(Resource):
       return file, 201
 
     def put(self, id):
-      current_files = files_enum(r'C:\Users\Ekaterina\Desktop\university-documents')
+      current_files = files_enum((Path(__file__).parent/'university-documents')
       parser = reqparse.RequestParser()
       parser.add_argument("name")
       parser.add_argument("date")
@@ -105,7 +106,7 @@ class Documents(Resource):
           }
 
     def delete(self, id):
-        current_files = files_enum(r'C:\Users\Ekaterina\Desktop\university-documents')
+        current_files = files_enum((Path(__file__).parent/'university-documents')
         current_files = [file for file in current_files if file["id"] != id]
         return f"File with id {id} is deleted.", 200
 
@@ -113,9 +114,4 @@ class Documents(Resource):
 api.add_resource(Documents, "/document-service", "/document-service/", "/document-service/<int:id>")
 
 if __name__ == '__main__':
-    current_files = files_enum(r'C:\Users\Ekaterina\Desktop\university-documents')
-    # if last_files != current_files:
-    #     send(current_files)
-    last_files = current_files
     app.run(debug=True, use_reloader=False)
-    # current_files = files_enum(r'C:\Users\Ekaterina\Desktop\sfedu-documents')
