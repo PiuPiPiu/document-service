@@ -2,8 +2,17 @@ from flask import Flask
 from flask_restful import Api, Resource, reqparse
 import docx2txt
 from pathlib import Path
+import mysql.connector
 import os
 import re
+
+mydb = mysql.connector.connect(
+    host="eyvqcfxf5reja3nv.cbetxkdyhwsb.us-east-1.rds.amazonaws.com",
+    user="gjnk9aymcgsx16c8",
+    password="wctb0rl370s5b602",
+    database="e7aariv527gxjb0w"
+)
+
 
 app = Flask(__name__)
 api = Api(app)
@@ -50,6 +59,12 @@ def files_enum(folder):
             'visible': True,
             'id': id
         }
+        mycursor = mydb.cursor()
+        mycursor.execute(f"""
+            INSERT INTO documents (name, date, visible)
+            VALUES ('{document}', '{date}', '{True}');
+        """)
+        mydb.commit()
         output['files'].append(obj)
         id = id + 1
     return output['files']
@@ -115,4 +130,5 @@ class Documents(Resource):
 api.add_resource(Documents, "/document-service", "/document-service/", "/document-service/<int:id>")
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    files_enum(Path(__file__).parent/'university-documents')
+    # app.run(debug=True)
