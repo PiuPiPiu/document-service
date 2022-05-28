@@ -3,6 +3,7 @@ from flask_restful import Api, Resource, reqparse
 import docx2txt
 from pathlib import Path
 import mysql.connector
+# import PySimpleGUI as sg
 import os
 import re
 
@@ -49,38 +50,67 @@ def read_docs(path):
 
 def files_enum(folder):
     files = os.listdir(folder)
-    output = {'files': []}
-    id = 1
+    local_files = []
+
     for document in files: # Перебор файлов
         date = read_docs(str(folder) + '/' + document)
         obj = {
             'name': document,
             'date': date,
-            'visible': True,
-            'id': id
         }
-        mycursor = mydb.cursor()
+        local_files.append(obj)
+
+    mycursor = mydb.cursor()
+    mycursor.execute(f"""select name, date from documents""")
+    db_files = mycursor.fetchall()
+    db_files_list = []
+    for file in db_files:
+        db_files_list.append({'name':file[0], 'date':file[1]})
+    copy_db_list = db_files_list
+
+
+    for file in local_files:
+        if file in db_files_list:
+             copy_db_list.remove(file)
+        else:
+            mycursor.execute(f"""
+                INSERT INTO documents (name, date, visible)
+                VALUES ('{file['name']}', '{file['date']}', '{True}');
+            """)
+            mydb.commit()
+
+    for file in copy_db_list:
         mycursor.execute(f"""
-            INSERT INTO documents (name, date, visible)
-            VALUES ('{document}', '{date}', '{True}');
+            delete from documents
+            where name='{file['name']}';
         """)
         mydb.commit()
-        output['files'].append(obj)
-        id = id + 1
-    return output['files']
+
+def get_database_data():
+    mycursor = mydb.cursor()
+    mycursor.execute(f"""select * from documents""")
+    db_files = mycursor.fetchall()
+    files_list = []
+
+    for file in db_files:
+        files_list.append({'id': file[0], 'name':file[1], 'date':file[2], 'visible': file[3]})
+    return files_list
 
 class Documents(Resource):
     def get(self, id=0):
-        current_files = files_enum(Path(__file__).parent/'university-documents')
+        files_enum(Path(__file__).parent/'university-documents')
+
+        files_list = get_database_data()
         if id == 0:
-            return current_files, 200
-        for file in current_files:
-            if(file["id"] == id):
+            return files_list, 200
+        for file in files_list:
+            if file['id'] == id:
                 return file, 200
-        return "File not found", 404
+        return 'File not found', 400
 
     def post(self, id):
-      current_files = files_enum(Path(__file__).parent/'university-documents')
+      files_enum(Path(__file__).parent/'university-documents')
+      current_files = get_database_data()
       parser = reqparse.RequestParser()
       parser.add_argument("name")
       parser.add_argument("date")
@@ -101,7 +131,8 @@ class Documents(Resource):
       return file, 201
 
     def put(self, id):
-      current_files = files_enum(Path(__file__).parent/'university-documents')
+      files_enum(Path(__file__).parent/'university-documents')
+      current_files = get_database_data()
       parser = reqparse.RequestParser()
       parser.add_argument("name")
       parser.add_argument("date")
@@ -122,13 +153,33 @@ class Documents(Resource):
           }
 
     def delete(self, id):
-        current_files = files_enum(Path(__file__).parent/'university-documents')
+        files_enum(Path(__file__).parent/'university-documents')
+        current_files = get_database_data()
         current_files = [file for file in current_files if file["id"] != id]
         return f"File with id {id} is deleted.", 200
 
 
 api.add_resource(Documents, "/document-service", "/document-service/", "/document-service/<int:id>")
 
+
+
+# layout = [
+#     [sg.Text('File 1'), sg.InputText(), sg.FileBrowse(),
+#      sg.Checkbox('MD5'), sg.Checkbox('SHA1')
+#      ],
+#     [sg.Text('File 2'), sg.InputText(), sg.FileBrowse(),
+#      sg.Checkbox('SHA256')
+#      ],
+#     [sg.Output(size=(88, 20))],
+#     [sg.Submit(), sg.Cancel()]
+# ]
+# window = sg.Window('File Compare', layout)
+# while True:                             # The Event Loop
+#     event, values = window.read()
+#     # print(event, values) #debug
+#     if event in (None, 'Exit', 'Cancel'):
+#         break
+
 if __name__ == '__main__':
     files_enum(Path(__file__).parent/'university-documents')
-    # app.run(debug=True)
+    app.run(debug=True)
