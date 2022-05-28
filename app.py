@@ -4,6 +4,7 @@ import docx2txt
 from pathlib import Path
 import mysql.connector
 import PySimpleGUI as sg
+from tkinter import * 
 import os
 import re
 
