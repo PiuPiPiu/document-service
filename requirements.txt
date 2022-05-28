@@ -4,3 +4,4 @@ gunicorn==20.1.0
 docx2txt==0.8
 pathlib==1.0.1
 mysql.connector==2.2.9
+PySimpleGUI==4.60.1
