@@ -3,8 +3,8 @@ from flask_restful import Api, Resource, reqparse
 import docx2txt
 from pathlib import Path
 import mysql.connector
-import PySimpleGUI as sg
-from tkinter import *
+# import PySimpleGUI as sg
+# from tkinter import *
 import os
 import re
 
@@ -22,7 +22,7 @@ api = Api(app)
 last_files = []
 rules = ['срок сдачи до', 'выполнить до', 'подготовить ответ к', 'выполнить до', 'сообщить до', 'согласовать до']# Правила для определения дат
 email = ''
-telegram_id = []
+telegram_id = ''
 
 def parse_txt(path):
     text = open(path).read()
@@ -70,16 +70,14 @@ def files_enum(folder):
     for file in db_files:
         db_files_list.append({'name':file[0], 'date':file[1]})
     copy_db_list = db_files_list
-    print('email = ', email)
-    print('telegram_id = ', telegram_id)
 
     for file in local_files:
         if file in db_files_list:
              copy_db_list.remove(file)
         else:
             mycursor.execute(f"""
-                INSERT INTO documents (name, date, visible, email, userID, chatID)
-                VALUES ('{file['name']}', '{file['date']}', '{True}', '{email}', '{telegram_id[0]}', '{telegram_id[1]}');
+                INSERT INTO documents (name, date, visible, email, userID)
+                VALUES ('{file['name']}', '{file['date']}', '{True}', '{email}', '{telegram_id}');
             """)
             mydb.commit()
 
@@ -97,7 +95,7 @@ def get_database_data():
     files_list = []
 
     for file in db_files:
-        files_list.append({'id': file[0], 'name':file[1], 'date':file[2], 'visible': file[3], 'email': file[4], 'telegramId': [file[5], file[6]]})
+        files_list.append({'id': file[0], 'name':file[1], 'date':file[2], 'visible': file[3], 'email': file[4], 'telegramId': file[5]})
     return files_list
 
 class Documents(Resource):
@@ -165,22 +163,10 @@ class Documents(Resource):
 api.add_resource(Documents, "/document-service", "/document-service/", "/document-service/<int:id>")
 
 
-
-layout = [
-    [sg.Text('Введите электронную почту SFEDU'), sg.InputText()],
-    [sg.Text('Введите user ID от телеграма'), sg.InputText()],
-    [sg.Text('Введите chat ID от телеграма'), sg.InputText()],
-    [sg.Text('(чтобы узнать свой id необходимо зайти в приложение телеграм и вызвать бота "Get my ID")')],
-    [sg.Submit(), sg.Cancel()]
-]
-window = sg.Window('Document Service', layout)
-
-
 if __name__ == '__main__':
-    event, values = window.read()
-    if event in (None, 'Submit', 'Exit', 'Cancel'):
-        window.close()
-    email = values[0]
-    telegram_id = [values[1], values[2]]
+    print('Введите свою электронную почту SFEDU:')
+    email = input()
+    print('Введите ID от телеграма (чтобы узнать свой id необходимо зайти в приложение телеграм и вызвать бота "Get my ID"): ')
+    telegram_id = input()
     files_enum(Path(__file__).parent/'university-documents')
     app.run(debug=True, use_reloader=False)
