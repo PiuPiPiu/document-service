@@ -1,9 +1,9 @@
-from flask import Flask
+﻿from flask import Flask
 from flask_restful import Api, Resource, reqparse
 import docx2txt
 from pathlib import Path
 import mysql.connector
-# import PySimpleGUI as sg
+import PySimpleGUI as sg
 # from tkinter import *
 import os
 import re
@@ -20,12 +20,12 @@ app = Flask(__name__)
 api = Api(app)
 
 last_files = []
-rules = ['срок сдачи до', 'выполнить до', 'подготовить ответ к', 'выполнить до', 'сообщить до', 'согласовать до']# Правила для определения дат
+rules = ['сдать до', 'срок сдачи до', 'выполнить до', 'подготовить ответ к', 'выполнить до', 'сообщить до', 'согласовать до']# Правила для определения дат
 email = ''
 telegram_id = ''
 
 def parse_txt(path):
-    text = open(path).read()
+    text = open(path).read().lower()
     date = ''
     for rule in rules: # Перебор правил
         if rule in text:
@@ -34,7 +34,7 @@ def parse_txt(path):
     return date
 
 def parse_docx(path):
-    text = docx2txt.process(path)
+    text = docx2txt.process(path).lower()
     date = ''
     for rule in rules: # Перебор правил
         if re.search(rule, text):
@@ -93,7 +93,6 @@ def get_database_data():
     mycursor.execute(f"""select * from documents""")
     db_files = mycursor.fetchall()
     files_list = []
-
     for file in db_files:
         files_list.append({'id': file[0], 'name':file[1], 'date':file[2], 'visible': file[3], 'email': file[4], 'telegramId': file[5]})
     return files_list
